@@ -1,0 +1,919 @@
+﻿
+
+<!DOCTYPE html>
+<html>
+<title>상품검색대 매장 검색</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="icon" href="../resource/kiosk/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="../resource/kiosk/css/w3.css">
+<link rel="stylesheet" href="../resource/kiosk/css/style.css">
+<script src="../ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="../jquery-3.6.0.js"></script>
+<link rel='stylesheet' href='../css?family=Open+Sans'>
+<link href="../ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../ui/1.13.0/themes/base/jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="../resource/kiosk/style.css">
+<script src="../4dfbed8ea4.js" crossorigin="anonymous"></script>
+
+<link href="../ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet">
+<script src="../ajax/libs/select2/4.0.1/js/select2.min.js"></script>
+
+<!-- Kakao지도 (services와 clusterer, drawing 라이브러리 포함) -->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ca792d16e5cc5495d54b039a9d12f3b8&libraries=services,clusterer,drawing"></script> <!-- 개발계정 -->
+<!-- <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=f213df35da8b246e145b162c61dae186&libraries=services,clusterer,drawing"></script> --> <!-- 상용계정 -->
+
+<style>
+html, body, h1, h2, h3, h4, h5 {font-family: 'Noto Sans KR', sans-serif;}
+html, body {
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+	/* position: initial; */
+	background: initial;
+}
+input {
+	font-size: 15px;
+}
+input::placeholder {
+	font-size: 15px;
+}
+.select2-container {
+	font-size: 12px !important;
+}
+
+/* 스크롤바 숨기기 */
+.table-wrapper {
+	/* -ms-overflow-style: none; */ /* IE and Edge */
+	/* scrollbar-width: none; */ /* Firefox */
+}
+.table-wrapper::-webkit-scrollbar {
+	/* display: none; */ /* Chrome, Safari, Opera*/
+}
+/* 스크롤바 숨기기 */
+
+.table-wrapper {
+	width: 100%;
+	height: 60%;
+	overflow-y: auto;
+	border-collapse: collapse;
+	padding-top:0px;
+	border: 1px solid silver;
+}
+.table-wrapper form {
+	height: 100%;
+}
+.result-table {
+	width: 100%;
+	margin:0px;
+	border-collapse: collapse;
+}
+.result-table tr {
+	border-bottom: 1px solid silver;
+}
+.result-table tbody {
+	position: relative;
+}
+.result-table .tableTh {
+	padding: 10px;
+	border-bottom: 1px solid silver;
+	height: 45px;
+	font-size: 13px;
+}
+.result-table .tableTd {
+	font-weight: normal;
+	padding: 10px;
+	height: 45px;
+	font-size: 13px;
+}
+.result-table .tableTd2 {
+	font-weight: normal;
+	padding: 0px;
+	border-bottom: 1px solid silver;
+	height: 45px;
+	font-size: 13px;
+}
+.result-table .storeNmTd {
+	font-weight: bold;
+	font-size: 1.2em;
+}
+.result-table .storeAddrTd {
+	
+}
+.result-table .distanceTd {
+	font-weight: bold;
+	color: red;
+}
+.result-table .arrowTd {
+	
+}
+.sdp-btn {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	background: var(--button-bg-color);
+	color: var(--button-color);
+	padding: 0.3rem 1rem;
+	font-family: 'Noto Sans KR', sans-serif;
+	font-size: 10pt;
+	font-weight: 400;
+	text-align: center;
+	text-decoration: none;
+	border: none;
+	border-radius: 4px;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	cursor: pointer;
+	transition: 0.5s;
+	--button-bg-color: #EFEFEF4D;
+	--button-color: black;
+	--button-hover-bg-color: #2196f3;
+	--button-hover-color: white;
+	background: var(--button-hover-bg-color);
+	color: var(--button-hover-color);
+	outline: 0;
+}
+/* .sdp-btn:hover {
+	background: var(--button-hover-bg-color);
+	color: var(--button-hover-color);
+	outline: 0;
+} */
+.sdp-btnLeft {
+	float: left;
+	height: 30px;
+}
+.sdp-btnLeft:not(:last-child) {
+	margin-right: 10px;
+}
+.sdp-btnRight {
+	float: right;
+	height: 30px;
+}
+.sdp-btnRight:not(:last-child) {
+	margin-left: 10px;
+}
+.verticalCenter {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-pack: center;
+	-webkit-justify-content: center;
+	-moz-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	-webkit-flex-line-pack: center;
+	-ms-flex-line-pack: center;
+	-webkit-align-content: center;
+	align-content: center;
+	-webkit-flex-direction: column;
+	-moz-flex-direction: column;
+	-ms-flex-direction: column;
+	flex-direction: column;
+}
+.textLeft {
+	text-align: left !important;
+}
+.textCenter {
+	text-align: center !important;
+}
+.textRight {
+	text-align: right !important;
+}
+.arrow {
+	border: solid black;
+	border-width: 0 3px 3px 0;
+	display: inline-block;
+	padding: 3px;
+}
+.arrow.right {
+	transform: rotate(-45deg);
+	-webkit-transform: rotate(-45deg);
+}
+
+.arrow.left {
+	transform: rotate(135deg);
+	-webkit-transform: rotate(135deg);
+}
+
+.arrow.up {
+	transform: rotate(-135deg);
+	-webkit-transform: rotate(-135deg);
+}
+
+.arrow.down {
+	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+
+#hMent {
+	/* padding: 5px;
+	background: orange;
+	text-align: center;
+	font-size: 2em;
+	font-weight: bold; */
+	border-bottom: 2px solid black;
+}
+#hTabDiv {
+	display: flex;
+}
+.hTab {
+	flex: 1;
+	text-align: center;
+	font-weight: bold;
+}
+.hTab.selected {
+	border-bottom: 4px solid orange;
+}
+.hTabTitle {
+	margin: 15px 0;
+}
+.hTabCont {
+	padding: 10px;
+	height: 50px;
+	background: #e7e7e7;
+}
+
+@media (min-width: 1081px) {
+	input {
+		font-size: 15px !important;
+	}
+	input::placeholder {
+		font-size: 15px !important;
+	}
+	.select2-container {
+		font-size: 15px !important;
+	}
+	#srch_storeNm {
+		width: 300px !important;
+	}
+	#srch_sidoCd {
+		width: 200px !important;
+	}
+	#srch_sggCd {
+		width: 300px !important;
+	}
+}
+</style>
+
+<script>
+var _oTabIdx = 0; //탭 인덱스 (0: 매장명 검색, 1: 지역 검색)
+var _oAjaxList = []; //ajax 호출 결과 저장
+var _oLatLngList = []; //위도, 경도 저장용 변수
+var sel2_opt = {};
+
+$(document).ready(function(){
+	fn_resizeTableWrapper();
+	
+	fn_init();
+	
+	//리스트 조회시 검색조건 enter 입력 이벤트
+	$(".hTabCont input[id^='srch']").keyup(function (e){
+		if(e.keyCode == 13) {
+			fn_search();
+		}
+	});
+	
+	$(document).on("change", "#srch_sidoCd", function() {
+		if ($(this).val() == null || $(this).val() == "") {
+			$("#srch_sggCd").html('<option value="">군/구</option>').select2(sel2_opt).prop("disabled", true);
+		} else {
+			fn_setRegionCodeList(2, $(this).val());
+		}
+	});
+});
+
+$(window).resize(function() {
+	fn_resizeTableWrapper();
+});
+
+fn_resizeTableWrapper = function() {
+	$(".table-wrapper").css("height", "calc(100% - " + ($("#hMent").outerHeight(true) + $("#hTabDiv").outerHeight(true) + $(".hTabCont").outerHeight(true)) + "px)");
+}
+
+//초기설정
+fn_init = function() {
+	//selectbox 값 세팅
+	fn_setRegionCodeList(1);
+}
+
+//리스트 검색
+fn_setRegionCodeList = function (regionLv, regionCd) {
+	var type = "post";
+	var url = "/kiosk/comRegionCodeList";
+	var param = {};
+	param.regionCd = regionCd;
+	param.regionLv = (regionCd == '3611000000' ? 1 : regionLv);	//세종특별자치시 예외처리
+	//console.log(param);
+	
+	$.ajax({
+		url : url,
+		type : type,
+		dataType : "json",
+		data : param,
+		beforeSend : function(jqXhr, settings){
+			//$("#overlay").show();
+		},
+		complete : function(){
+			//$("#overlay").hide();
+		}
+	})
+	.done(function(response) {
+		var list = response.data.list;
+		var oData = response.data.oData;
+		//console.log(list);
+		//console.log(oData);
+		
+		var htmlStr = '';
+		if (regionLv == 1) {
+			$.each(response.data.list, function(index, item) {
+				htmlStr += '<option value="' + item.regionCd + '">' + item.regionNm + '</option>';
+			});
+			$("#srch_sidoCd").html('<option value="">시/도</option>' + htmlStr).select2(sel2_opt).prop("disabled", false);
+			$("#srch_sggCd").html('<option value="">군/구</option>').select2(sel2_opt).prop("disabled", true);
+		} else if (regionLv == 2) {
+			$.each(response.data.list, function(index, item) {
+				htmlStr += '<option value="' + item.regionCd + '">' + item.regionNm + '</option>';
+			});
+			$("#srch_sggCd").html('<option value="">군/구</option>' + htmlStr).select2(sel2_opt).prop("disabled", false);
+		}
+	})
+	.fail(function(request, status, error) {
+		//alert(parent.gfn_getAjaxMessage(request));
+		//TODO: Controller에서 redirect 한경우 dataType 맞지않음. 수정필요
+		if(status == "parsererror") {
+			location.href="/kiosk/view/index1";
+		} else {
+			alert(error);
+		}
+	});
+}
+
+//탭 선택
+fn_openHTab = function(tabIdx) {
+	_oTabIdx = tabIdx;
+	
+	$(".hTabCont").hide();
+	$(".hTabCont").eq(_oTabIdx).show();
+	
+	$(".hTab").removeClass("selected");
+	$(".hTab").eq(_oTabIdx).addClass("selected");
+	
+	$(".result-table").hide();
+	$(".result-table").eq(_oTabIdx).show();
+}
+
+//조회 버튼 클릭
+fn_search = function() {
+	var type = "post";
+	var url = "/store/master/list2";
+	var param = {};
+	if(_oTabIdx == 0) {
+		//위치 허용시 가까운 매장 보기 기본
+		/*if ($("#srch_storeNm").val() == "") {
+			alert("매장명을 입력 후 검색해주세요.");
+			$("#srch_storeNm").focus();
+			return false;
+		}*/
+		param.storeNm = $("#srch_storeNm").val();
+	} else if(_oTabIdx == 1) {
+		if($("#srch_sidoCd").val() == ""){
+			alert("시/도를 선택 후 검색해주세요.");
+			$("#srch_sidoCd").select2("open");
+			return false;
+		}
+		param.sidoCd = $("#srch_sidoCd").val();
+		param.sggCd = $("#srch_sggCd").val();
+	}
+	console.log(param);
+	
+	$.ajax({
+		url : url,
+		type : type,
+		dataType : "json",
+		data : param,
+		beforeSend : function(jqXhr, settings){
+			$("#overlay").show();
+		},
+		complete : function(){
+			//$("#overlay").hide();
+		}
+	})
+	.done(function (response) {
+		_oAjaxList[_oTabIdx] = response.data.list;
+		
+		//조회 결과 있음
+		if(response.data.list.length > 0) {
+			var listTotal = response.data.list.length;
+			var callbackCnt = 0; //비동기 콜백 수행 카운트
+			
+			$.each(response.data.list, function(index, item) {
+				//DB에 저장이 되어있는 경우
+				if(!gfn_isEmpty(item.latitude) && !gfn_isEmpty(item.longitude)) {
+					////현재 위치 정보가 있는 경우 (GeoLocation을 이용해서 접속 위치를 가져온 경우)
+					//if(!gfn_isEmpty(_oLat) && !gfn_isEmpty(_oLon)) {
+					//	//현재위치와 해당매장의 거리를 구함
+					//	item.distance = fn_getDistance(_oLat, _oLon, item.latitude, item.longitude);
+					//}
+					////현재 위치 정보가 없는 경우 (GeoLocation 사용 불가)
+					//else {
+					//	
+					//}
+					//현재위치와 해당매장의 거리를 구함
+					item.distance = fn_getDistance(_oLat, _oLon, item.latitude, item.longitude);
+					
+					callbackCnt++;
+					if (listTotal === callbackCnt) {
+						//그리드 화면 그리기
+						fn_drawHtmlTb();
+						$("#overlay").hide();
+					}
+				}
+				//DB에 저장이 안되어있으면 주소로 좌표 검색 후 DB에 저장
+				else {
+					//주소-좌표 변환 객체를 생성합니다
+					var geocoder = new kakao.maps.services.Geocoder();
+					
+					//주소로 좌표를 검색합니다
+					geocoder.addressSearch(item.storeAddrSrch, function(result, status) {
+						//정상적으로 검색이 완료됐으면 
+						if (status === kakao.maps.services.Status.OK) {
+							//검색된 좌표 저장
+							item.latitude = result[0].y;
+							item.longitude = result[0].x;
+							
+							//현재위치와 해당매장의 거리를 구함
+							item.distance = fn_getDistance(_oLat, _oLon, item.latitude, item.longitude);
+							
+							//위도, 경도 DB 저장
+							_oLatLngList.push({storeErp: item.storeErp, latitude: item.latitude, longitude: item.longitude});
+						}
+						
+						callbackCnt++; //비동기 콜백이 수행되었으면 하나 업 카운트
+						if (listTotal === callbackCnt) { //모든 비동기 콜백이 수행되었다면
+							//그리드 화면 그리기
+							fn_drawHtmlTb();
+							$("#overlay").hide();
+							
+							//위도, 경도 DB 저장
+							fn_saveLatLng();
+						}
+					});
+				}
+			});
+		}
+		//조회 결과 없음
+		else {
+			var htmlStr = '';
+			htmlStr += '<tr>';
+			htmlStr += '<td class="tableTd textCenter" colspan="2">조회 결과가 없습니다.</td>';
+			htmlStr += '</tr>';
+			$(".result-table").eq(_oTabIdx).find("tbody").html(htmlStr);
+			$("#overlay").hide();
+		}
+	})
+	.fail(function(request, status, error) {
+		//alert(parent.gfn_getAjaxMessage(request));
+		//TODO: Controller에서 redirect 한경우 dataType 맞지않음. 수정필요
+		if(status == "parsererror") {
+			location.href="/kiosk/view/index1";
+		} else {
+			alert(error);
+		}
+	});
+}
+
+//두 위치 사이 거리 계산
+fn_getDistance = function(latA, lonA, latB, lonB) {
+	var polyline = new kakao.maps.Polyline({
+		path : [
+			new kakao.maps.LatLng(latA, lonA),
+			new kakao.maps.LatLng(latB, lonB)
+		]
+	});
+	return (polyline.getLength() / 1000).toFixed(1); //m -> km 변환, 소수점 1자리 고정
+}
+
+//그리드 화면 그리기
+fn_drawHtmlTb = function() {
+	//가장 위치 가까운순으로 정렬
+	//주소 기반으로 위치 검색이 안되면 가장 마지막으로 (서울-부산 325km)
+	_oAjaxList[_oTabIdx].sort((a, b) => (gfn_isEmpty(a.distance) ? 9999 : a.distance) - (gfn_isEmpty(b.distance) ? 9999 : b.distance));
+	//_oAjaxList[_oTabIdx].sort((a, b) => (gfn_isEmpty(a.distance) ? -1 : a.distance) - (gfn_isEmpty(b.distance) ? -1 : b.distance));
+	//_oAjaxList[_oTabIdx].sort(function(a, b) { return a - b; });
+	console.log(_oAjaxList[_oTabIdx]);
+	
+	var htmlStr = '';
+	$.each(_oAjaxList[_oTabIdx], function(index, item) {
+		htmlStr += '<tr>';
+		htmlStr += '<td class="tableTd textCenter">';
+		htmlStr += '<div class="storeNmTd textLeft" onclick="fn_loginStore(' + index + ')">' + item.storeNm + '</div>';
+		htmlStr += '<div class="storeAddrTd textLeft">' + item.storeAddr + '</div>';
+		htmlStr += '</td>';
+		htmlStr += '<td class="tableTd textCenter">';
+		htmlStr += '<div class="distanceTd textCenter"><p style="margin: 0;">' + (gfn_isEmpty(item.distance) ? '' : item.distance + 'km') + '</p></div>';
+		htmlStr += '<div class="arrowTd textCenter">' + '<p style="margin: 0;" onclick="fn_showKakaoMap(' + index + ')"><i class="kakaoMapArrow arrow down"></i></p>' + '</div>';
+		htmlStr += '</td>';
+		htmlStr += '</tr>';
+		htmlStr += '<tr class="kakaoMapTr" style="display:none">';
+		htmlStr += '<td class="tableTd2 textCenter" colspan="2">';
+		htmlStr += '<div class="kakaoMap" style="width: 100%;height:300px;"></div>';
+		htmlStr += '</td>';
+		htmlStr += '</tr>';
+	});
+	$(".result-table").eq(_oTabIdx).find("tbody").html(htmlStr);
+}
+
+//위도, 경도 DB 저장
+fn_saveLatLng = function() {
+	var type = "post";
+	var url = "/store/master/saveLatLng";
+	var param = {};
+	var listIdx = 0;
+	$.each(_oLatLngList, function(index, item) {
+		if(!gfn_isEmpty(item.storeErp) && !gfn_isEmpty(item.latitude) && !gfn_isEmpty(item.longitude)){
+			param["dataLatLngList" + "[" + listIdx + "].storeErp"] = item.storeErp;
+			param["dataLatLngList" + "[" + listIdx + "].latitude"] = item.latitude;
+			param["dataLatLngList" + "[" + listIdx + "].longitude"] = item.longitude;
+			listIdx++;
+		}
+	});
+	//DB에 저장안된 값 중에서 카카오지도로 검색이 가능한 리스트가 없으면 중단 (타입 체크 포함)
+	if(Object.keys(param).length === 0 && param.constructor === Object) {
+		return false;
+	}
+	
+	$.ajax({
+		url : url,
+		type : type,
+		dataType : "json",
+		data : param,
+		beforeSend : function(jqXhr, settings){
+			$("#overlay").show();
+		},
+		complete : function(){
+			$("#overlay").hide();
+		}
+	})
+	.done(function (response) {
+		console.log(param);
+		console.log("저장완료");
+		_oLatLngList = [];
+	})
+	.fail(function(request, status, error) {
+		//alert(parent.gfn_getAjaxMessage(request));
+		//TODO: Controller에서 redirect 한경우 dataType 맞지않음. 수정필요
+		if(status == "parsererror") {
+			location.href="/kiosk/view/index1";
+		} else {
+			alert(error);
+		}
+	});
+}
+
+//매장명 클릭
+fn_loginStore = function(trIdx) {
+	location.href = "/?dvcMngNo=" + _oAjaxList[_oTabIdx][trIdx].dvcMngNoEnc;
+}
+
+//화살표(지도 펼치기) 버튼 클릭
+fn_showKakaoMap = function(trIdx) {
+	var selectedRow = _oAjaxList[_oTabIdx][trIdx]; //선택된행에 해당하는 ajax결과
+	var $tabTbody = $(".result-table").eq(_oTabIdx).find("tbody"); //선택된 Tab의 table body
+	var $kakaoMapArrow = $tabTbody.find(".kakaoMapArrow").eq(trIdx); //선택한 화살표 버튼
+	var $kakaoMapTr = $tabTbody.find(".kakaoMapTr").eq(trIdx); //선택된 행
+	var $kakaoMap = $tabTbody.find(".kakaoMap").eq(trIdx); //카카오지도
+	
+	// 화살표 위/아래 변경
+	if($kakaoMapArrow.hasClass("down")) {
+		$kakaoMapArrow.removeClass("down");
+		$kakaoMapArrow.addClass("up");
+		$kakaoMapTr.show();
+	} else if($kakaoMapArrow.hasClass("up")) {
+		$kakaoMapArrow.removeClass("up");
+		$kakaoMapArrow.addClass("down");
+		$kakaoMapTr.hide();
+	}
+	//첫로딩시에만 카카오맵 API 호출
+	if($kakaoMap.find("div").length == 0) {
+		var mapOption = {
+			center : _oDefaultCoords, //지도의 중심좌표 (매봉역점 기본)
+			level : 3 //지도의 확대 레벨
+		};
+		
+		//지도를 생성합니다
+		var kakaoMap = new kakao.maps.Map($kakaoMap[0], mapOption);
+		
+		////DB에 저장이 되어있는 경우
+		//if(!gfn_isEmpty(selectedRow.latitude) && !gfn_isEmpty(selectedRow.longitude)) {
+		//	var coords = new kakao.maps.LatLng(selectedRow.latitude, selectedRow.longitude);
+		//	var message = '<div style="width:150px;text-align:center;padding:6px 0;">' + selectedRow.storeNm + '</div>';
+		//	fn_displayMarker(kakaoMap, coords, message);
+		//}
+		////DB에 저장이 안되어있으면 주소로 좌표 검색 후 DB에 저장
+		//else {
+		// 매번 새로 검색해서 저장
+			//주소-좌표 변환 객체를 생성합니다
+			var geocoder = new kakao.maps.services.Geocoder();
+			
+			//주소로 좌표를 검색합니다
+			geocoder.addressSearch(selectedRow.storeAddrSrch, function(result, status) {
+				//정상적으로 검색이 완료됐으면 
+				if (status === kakao.maps.services.Status.OK) {
+					var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+					var message = '<div style="width:150px;text-align:center;padding:6px 0;">' + selectedRow.storeNm + '</div>';
+					fn_displayMarker(kakaoMap, coords, message);
+					
+					//위도, 경도 DB 저장
+					_oLatLngList.push({storeErp: selectedRow.storeErp, latitude: result[0].y, longitude: result[0].x});
+					fn_saveLatLng();
+				} else {
+					//alert("위치를 찾을 수 없습니다. ");
+					var coords = _oDefaultCoords; //지도의 중심좌표 (매봉역점 기본)
+					var message = '<div style="width:150px;text-align:center;padding:6px 0;">' + '매봉역점' + '</div>';
+					fn_displayMarker(kakaoMap, coords, message);
+				}
+			});
+		//}
+	}
+}
+
+//지도에 마커와 인포윈도우를 표시하는 함수
+fn_displayMarker = function(kakaoMap, coords, message) {
+	//마커를 생성합니다
+	var marker = new kakao.maps.Marker({
+		  map : kakaoMap
+		, position : coords
+	});
+	
+	//인포윈도우를 생성합니다
+	var infowindow = new kakao.maps.InfoWindow({
+		  content : message //인포윈도우에 표시할 내용
+		//, removable : true //닫기 버튼 여부
+	});
+	
+	//인포윈도우를 마커위에 표시합니다 
+	infowindow.open(kakaoMap, marker);
+	
+	//지도 중심좌표를 접속위치로 변경합니다
+	kakaoMap.setCenter(coords);
+}
+
+//empty 체크
+gfn_isEmpty = function(str) {
+	if (typeof str == "boolean") {
+		return str;
+	}
+	else if (typeof str == "string") {
+		str = str.trim();
+	}
+	
+	if (str == undefined) {
+		return true;
+	}
+	else if (str == "undefined") {
+		return true;
+	}
+	else if (str == null) {
+		return true;
+	}
+	else if (str == "null") {
+		return true;
+	}
+	else if (str == "") {
+		if (typeof str == "string" || typeof str == "object") {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ("x" + str == "xNaN") {
+		return true;
+	}
+	else if (str.length == 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+</script>
+
+<!-- header -->
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async="" src="../gtag/js?id=UA-240006453-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-240006453-3');
+</script>
+
+
+<!-- Loading bar -->
+
+
+<style>
+#pl-container {
+	display: none;
+	position: fixed;
+	top: 0;
+	z-index: 99998 !important;
+	width: 100%;
+	height:100%;
+	text-align: center;
+	background: rgba(0,0,0,0.5);
+}
+#pl-container img {
+	width: 100%;
+	/* height: 100%; */
+}
+#pl-overlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	z-index: 99999 !important;
+	width: 100%;
+	height:100%;
+	text-align: center;
+	background: rgba(0,0,0,0.2);
+}
+.pl-wrapper {
+	height: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+}
+.pl-spinner {
+	width: 150px;
+	height: 150px;
+	border: 10px white solid;
+	border-top: 10px yellow solid;
+	border-radius: 50%;
+	animation: sp-anime 0.8s infinite linear;
+	/* opacity: 0.7; */
+}
+.pl-ment {
+	color: white;
+	font-weight: bold;
+	font-size: 22px;
+	/* opacity: 0.9; */
+}
+.pl-lineBreak {
+	flex-basis: 100%;
+	height: 0;
+}
+@keyframes sp-anime {
+	100% {
+		transform: rotate(360deg);
+	}
+}
+</style>
+
+<script>
+fn_showPrdLoading = function(prop) {
+	// 로딩화면 show 시 모바일 키보드 내리기
+	if(typeof prop != "undefined" && prop != null && prop != "") {
+		prop.blur();
+	}
+	//var num = 2;	//num까지 랜덤숫자
+	//$("#pl-img").attr("src", "/resource/kiosk/img/pl_mobile_" + Math.floor(Math.random() * num + 1) + ".png");
+	$("#pl-img").attr("src", "/resource/kiosk/img/mobile_gift_card.jpg");
+	$("#pl-img").css("width", "95%");
+	$("#pl-container").show();
+	$("#pl-overlay").show();
+}
+
+fn_hidePrdLoading = function() {
+	$("#pl-container").hide();
+	$("#pl-overlay").hide();
+}
+</script>
+
+<div id="pl-container">
+	<div class="pl-wrapper" style="text-align: center">
+		<img id="pl-img" src="">
+	</div>
+</div>
+
+<div id="pl-overlay">
+	<div class="pl-wrapper">
+		<div class="pl-lineBreak" style="height: 30%;"></div>
+		<div class="pl-spinner"></div>
+		<div class="pl-lineBreak"></div>
+		<div class="pl-ment">로딩중입니다. 잠시만 기다려주세요.</div>
+		<div class="pl-lineBreak" style="height: 30%;"></div>
+	</div>
+</div>
+<!-- Loading bar -->
+
+
+<style>
+#overlay{
+	position: fixed;
+	top: 0;
+	z-index: 99999 !important;
+	width: 100%;
+	height:100%;
+	display: none;
+	background: rgba(0,0,0,0.6);
+}
+.cv-spinner {
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.spinner {
+	width: 40px;
+	height: 40px;
+	border: 4px #ddd solid;
+	border-top: 4px #2e93e6 solid;
+	border-radius: 50%;
+	animation: sp-anime 0.8s infinite linear;
+}
+@keyframes sp-anime {
+	100% {
+		transform: rotate(360deg);
+	}
+}
+</style>
+
+<div id="overlay">
+	<div class="cv-spinner">
+		<span class="spinner"></span>
+	</div>
+</div>
+
+
+<body class="w3-theme-l5">
+	<!-- <div id="hMent">방문하신 매장명을<br>선택해주세요</div> -->
+	<div id="hMent"><img src="../resource/kiosk/img/index_common_high.jpg" style="width:100%"></div>
+	<div id="hTabDiv">
+		<div class="hTab selected" onclick="fn_openHTab(0)">
+			<div class="hTabTitle" style="border-right: 2px solid black;">매장명 검색</div>
+		</div>
+		<div class="hTab" onclick="fn_openHTab(1)">
+			<div class="hTabTitle">지역 검색</div>
+		</div>
+	</div>
+	<div class="hTabCont">
+		<input type="text" id="srch_storeNm" name="storeNm" style="width: 80%;" placeholder="매장명을 입력해주세요.">
+		<input type="button" class="sdp-btn sdp-btnRight" value="검색" onclick="fn_search();">
+	</div>
+	<div class="hTabCont" style="display:none">
+		<select id="srch_sidoCd" style="width: 30%;"></select>
+		<select id="srch_sggCd" style="width: 50%;"></select>
+		<input type="button" class="sdp-btn sdp-btnRight" value="검색" onclick="fn_search();">
+	</div>
+	<div class="table-wrapper">
+		<table class="result-table">
+			<colgroup>
+				<col width="*">
+				<col width="80px">
+			</colgroup>
+			<tbody>
+				<tr>
+					<td class="tableTd textCenter" colspan="2">조회 결과가 없습니다.</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="result-table" style="display:none">
+			<colgroup>
+				<col width="*">
+				<col width="80px">
+			</colgroup>
+			<tbody>
+				<tr>
+					<td class="tableTd textCenter" colspan="2">조회 결과가 없습니다.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<!-- 카카오 지도 관련 스크립트 -->
+	<script>
+	var _oLat;
+	var _oLon;
+	var _oDefaultCoords = new kakao.maps.LatLng(37.4866152698895, 127.047198914992); //지도의 중심좌표 (매봉역점 기본)
+	
+	//HTML5의 geolocation으로 사용할 수 있는지 확인합니다 
+	if (navigator.geolocation) {
+		//GeoLocation을 이용해서 접속 위치를 얻어옵니다
+		navigator.geolocation.getCurrentPosition(function(position) {
+			_oLat = position.coords.latitude; //위도
+			_oLon = position.coords.longitude; //경도
+			fn_search(); //위치 허용시 가까운 매장 보기 기본
+		});
+	}
+	</script>
+	
+	<!-- footer -->
+	
+</body>
+</html>
